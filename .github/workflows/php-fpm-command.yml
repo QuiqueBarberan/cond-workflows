@@ -1,0 +1,40 @@
+name: restart PHP
+on:
+  workflow_call:
+    inputs:
+      ip_machines:
+        description: maquinas por ip, paraleliza con el job matrix y el strategy
+        required: true
+        type: string
+      fpm-command:
+        description: Puede ser start/stop/restart - default restart
+        type: string
+        default: 'restart'
+
+jobs:
+  matrix:
+    name: Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: |
+          ${{ steps.matrix.outputs.matrix }}        
+    steps:
+        - name: Outputs matrix
+          id: matrix
+          run: |
+              ips="${{ inputs.ip_machines }}"
+              matrix=$(echo $ips | jq -cR 'split (",") | .[]' | jq -s '[.[] | { machine: . }]' | jq -c '{ include: . }')
+              echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  ConnectAndRestartPHP:
+    name: Reinicia PHP en la maquina
+    needs: [matrix]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
+    steps:
+    - name: executing remote ssh commands using ssh key
+      run: |
+        echo ${{ matrix.machine }}
+        echo ${{ inputs.fpm-command }}
