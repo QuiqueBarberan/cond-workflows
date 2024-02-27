@@ -1,6 +1,6 @@
 name: Verifica & Despliega php
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       tag:
         required: true
