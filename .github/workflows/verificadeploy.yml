@@ -1,0 +1,17 @@
+name: verifica Deploy
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+          
+jobs:
+    verificaDeploy:
+        name: verifica Deploy
+        runs-on: ubuntu-latest
+        steps:
+        - uses: actions/checkout@v4
+          # with:
+          #   ref: ${{ inputs.tag }}
+        - run: echo ${{ inputs.tag }}
