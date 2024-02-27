@@ -1,0 +1,33 @@
+name: Test Url Servername
+on:
+  workflow_call:
+    inputs:
+      servername:
+        required: true
+        type: string
+    
+jobs:
+  matrix:
+    name: Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: |
+          ${{ steps.matrix.outputs.matrix }}        
+    steps:
+        - name: Outputs matrix
+          id: matrix
+          run: |
+              ips="${{ inputs.servername }}"
+              matrix=$(echo $ips | jq -cR 'split (",") | .[]' | jq -s '[.[] | { servername: . }]' | jq -c '{ include: . }')
+              echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  TestUrl:
+    name: Comprueba URL
+    needs: [matrix]
+    runs-on: eks-testing-runner
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
+    steps:
+    - name: Ejecuta prueba url
+      run: echo ${{ matrix.servername }}
