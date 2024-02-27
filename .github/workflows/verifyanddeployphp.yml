@@ -77,7 +77,7 @@ jobs:
 
   # Check está ok
   CheckUrl:
-    # Si es distinto de fallo, se ejecuta
+    if: always()
     needs: [deploySource, PhpRestart]
     uses: ./.github/workflows/test-url-servername.yml
     name: Check URL
