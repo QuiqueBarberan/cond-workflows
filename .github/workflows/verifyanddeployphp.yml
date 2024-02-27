@@ -53,6 +53,7 @@ jobs:
 
   # Desplegamos el codigo, el apache sigue sirviendo el php cacheado
   phpcacheclear:
+    if: inputs.consolefolder != '' && inputs.entorno != ''
     needs: [deploySource]
     uses: ./.github/workflows/php-cache-clear.yml
     name: Cache Clear
@@ -65,6 +66,7 @@ jobs:
 
   # Reiniciamos php
   PhpRestart:
+    if: inputs.consolefolder != '' && inputs.entorno != ''
     needs: [phpcacheclear]
     uses: ./.github/workflows/php-fpm-command.yml
     name: Php Start
