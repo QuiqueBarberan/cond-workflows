@@ -16,9 +16,9 @@ on:
         description: Puede ser app/console - bin/console
         default: 'bin/console'
       entorno:
-        required: true
         type: string
         description: 'entorno valores: vacio, pre, prod'
+        default: ''
   
 
 jobs:
