@@ -1,0 +1,44 @@
+name: deploy Source (Rundeck script)
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+      remotedir:
+        required: true
+        type: string
+      ip_machines:
+        required: true
+        type: string
+    
+jobs:
+  matrix:
+    name: Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: |
+          ${{ steps.matrix.outputs.matrix }}        
+    steps:
+        - name: Outputs matrix
+          id: matrix
+          run: |
+              ips="${{ inputs.ip_machines }}"
+              matrix=$(echo $ips | jq -cR 'split (",") | .[]' | jq -s '[.[] | { machine: . }]' | jq -c '{ include: . }')
+              echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  ConnectAndDeploy:
+    name: Despliega con script rundeck
+    needs: [matrix]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}
+    steps:
+    - name: executing remote ssh commands using ssh key
+      run: |
+        VERSION=${{ inputs.tag }}
+        WC_DIR=${{ inputs.remotedir }}
+        echo $VERSION
+        echo $WC_DIR
+        echo ${{ matrix.machine }}
