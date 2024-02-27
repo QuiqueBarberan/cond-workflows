@@ -1,0 +1,83 @@
+name: Verifica & Despliega php
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+      remoteDir:
+        required: true
+        type: string
+      ip_machines:
+        required: true
+        type: string
+      consolefolder:
+        type: string
+        description: Puede ser app/console - bin/console
+        default: 'bin/console'
+      entorno:
+        required: true
+        type: string
+        description: 'entorno valores: vacio, pre, prod'
+  
+
+jobs:
+  # Comprobamos que el tag a desplegar existe
+  verificaDeploy:
+    uses: ./.github/workflows/verificadeploy.yml
+    name: Verifica el tag existe
+    with:
+      tag: ${{ inputs.tag }}
+    secrets: inherit
+
+  # Hace una copia de la carpeta de codigo
+  backupCode:
+    needs: [verificaDeploy]
+    uses: ./.github/workflows/backupcode.yml
+    name: BackUp del code actual
+    with:
+      remotedir: ${{ inputs.remotedir }}
+      ip_machines: ${{ inputs.ip_machines }}
+    secrets: inherit
+
+  # Desplegamos el codigo, el apache sigue sirviendo el php cacheado
+  deploySource:
+    needs: [backupCode]
+    uses: ./.github/workflows/deploySource_rundeckscript.yml
+    name: Despliegue mediante rundeck script
+    with:
+      tag: ${{ inputs.tag }}
+      remotedir: ${{ inputs.remotedir }}
+      ip_machines: ${{ inputs.ip_machines }}
+    secrets: inherit
+
+  # Desplegamos el codigo, el apache sigue sirviendo el php cacheado
+  phpcacheclear:
+    needs: [deploySource]
+    uses: ./.github/workflows/php-cache-clear.yml
+    name: Cache Clear
+    with:
+      remotedir: ${{ inputs.remoteDir }}
+      ip_machines: ${{ inputs.ip_machines }}
+      consolefolder: ${{ inputs.consolefolder }}
+      entorno: ${{ inputs.entorno }}
+    secrets: inherit
+
+  # Reiniciamos php
+  PhpRestart:
+    needs: [phpcacheclear]
+    uses: ./.github/workflows/php-fpm-command.yml
+    name: Php Start
+    with:
+      ip_machines: ${{ inputs.ip_machines }}
+      fpm-command: "restart"
+    secrets: inherit
+
+  # Check está ok
+  CheckUrl:
+    needs: [PhpRestart]
+    uses: ./.github/workflows/test-url-servername.yml
+    name: Check URL
+    with:
+      servername: ${{ vars.servername }}
+    secrets: inherit
