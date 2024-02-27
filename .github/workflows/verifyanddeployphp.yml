@@ -79,5 +79,5 @@ jobs:
     uses: ./.github/workflows/test-url-servername.yml
     name: Check URL
     with:
-      servername: ${{ vars.servername }}
+      servername: 'url1,url2'
     secrets: inherit
