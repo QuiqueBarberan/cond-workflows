@@ -24,7 +24,7 @@ jobs:
   TestUrl:
     name: Comprueba URL
     needs: [matrix]
-    runs-on: eks-testing-runner
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix: ${{ fromJson(needs.matrix.outputs.matrix) }}

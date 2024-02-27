@@ -42,3 +42,4 @@ jobs:
         echo $VERSION
         echo $WC_DIR
         echo ${{ matrix.machine }}
+        exit 1
